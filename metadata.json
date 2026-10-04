@@ -1,0 +1,6 @@
+{
+  "name": "Bedimcode Portfolio",
+  "description": "Responsive Personal Portfolio Website by Bedimcode with interactive navigation, smooth scroll, skills progress bars, and project gallery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
