@@ -252,64 +252,7 @@ export default function App() {
   // Home profile image is strictly preserved and excluded from about replacements
   const homeBlobImage = `${import.meta.env.BASE_URL}assets/img/perfil.png`;
 
-  // About profile photo state (strictly isolated to the About section only)
-  const aboutFileInputRef = useRef<HTMLInputElement>(null);
-  const [aboutProfileImage, setAboutProfileImage] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('johndev_profile_about');
-      if (saved) return saved;
-    }
-    return `${import.meta.env.BASE_URL}assets/img/about.jpg`;
-  });
-
-  const saveAboutPhoto = (dataUrl: string) => {
-    setAboutProfileImage(dataUrl);
-    try {
-      localStorage.setItem('johndev_profile_about', dataUrl);
-      fetch('/api/upload-avatar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ themeFilledBase64: dataUrl }),
-      }).catch(() => {});
-    } catch (_) {}
-  };
-
-  // Seamless drag-drop and clipboard paste listener specifically for the About photo
-  useEffect(() => {
-    // If a custom about photo is in localStorage, ensure it's synced to disk
-    if (typeof window !== 'undefined') {
-      const savedAbout = localStorage.getItem('johndev_profile_about');
-      if (savedAbout) {
-        fetch('/api/upload-avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ themeFilledBase64: savedAbout }),
-        }).catch(() => {});
-      }
-    }
-
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith('image/')) {
-          const file = items[i].getAsFile();
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const res = event.target?.result as string;
-              if (res) saveAboutPhoto(res);
-            };
-            reader.readAsDataURL(file);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, []);
+  const aboutProfileImage = `${import.meta.env.BASE_URL}assets/img/about.jpg`;
 
   // Auto-detect and respond dynamically to system prefers-color-scheme
   useEffect(() => {
@@ -764,42 +707,11 @@ export default function App() {
                 animate={activeSection === 'about' ? 'visible' : 'hidden'}
                 variants={imageRevealVariants}
                 whileHover={{ scale: 1.02, rotate: -1.6, y: -6 }}
-                onClick={() => aboutFileInputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const file = e.dataTransfer.files?.[0];
-                  if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      const res = ev.target?.result as string;
-                      if (res) saveAboutPhoto(res);
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
               >
                 <img
                   src={aboutProfileImage}
                   alt="John Harold Salvaña - About Photo"
                   referrerPolicy="no-referrer"
-                />
-                <input
-                  ref={aboutFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => {
-                        const res = ev.target?.result as string;
-                        if (res) saveAboutPhoto(res);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
                 />
               </motion.div>
 
