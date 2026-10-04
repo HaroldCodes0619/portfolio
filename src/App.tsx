@@ -6,7 +6,6 @@ import { TermsOfServiceModal } from './TermsOfServiceModal';
 import { WaveBackgroundCanvas } from './WaveBackgroundCanvas';
 import { Toast, ToastMessage } from './Toast';
 import { ShareModal } from './ShareModal';
-import { AboutPhotoGallery } from './AboutPhotoGallery';
 
 const MySQLIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -851,11 +850,6 @@ export default function App() {
                   </div>
                 </motion.div>
               </motion.div>
-            </div>
-
-            {/* Custom Photo Gallery below About description */}
-            <div className="bd-grid about-gallery__section-wrapper">
-              <AboutPhotoGallery onToast={showToast} />
             </div>
 
             <FooterFrame
