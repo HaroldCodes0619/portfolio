@@ -6,6 +6,7 @@ import { TermsOfServiceModal } from './TermsOfServiceModal';
 import { WaveBackgroundCanvas } from './WaveBackgroundCanvas';
 import { Toast, ToastMessage } from './Toast';
 import { ShareModal } from './ShareModal';
+import { AboutCertificates } from './AboutCertificates';
 
 const MySQLIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -763,6 +764,8 @@ export default function App() {
                 </motion.div>
               </motion.div>
             </div>
+
+            <AboutCertificates onToast={showToast} />
 
             <FooterFrame
               onNavigate={handleNavigate}
