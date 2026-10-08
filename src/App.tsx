@@ -284,7 +284,7 @@ export default function App() {
     setIsDarkMode((prev) => !prev);
   };
 
-  // Send contact messages through FormSubmit to the portfolio owner's email.
+  // Send contact messages through the configured Formspree form.
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormSubmitting(true);
@@ -292,7 +292,7 @@ export default function App() {
     setFormSubmitted(false);
 
     try {
-      const response = await fetch('https://formsubmit.co/ajax/salvanaj75@gmail.com', {
+      const response = await fetch('https://formspree.io/f/xqpepggq', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -300,26 +300,30 @@ export default function App() {
         },
         body: JSON.stringify({
           ...formData,
-          _replyto: formData.email,
           _subject: 'New portfolio contact message',
-          _template: 'table',
         }),
       });
       const result: unknown = await response.json().catch(() => null);
-      const serviceMessage =
-        typeof result === 'object' &&
-        result !== null &&
-        'message' in result &&
-        typeof result.message === 'string'
-          ? result.message
-          : '';
-      const serviceAccepted =
-        typeof result === 'object' &&
-        result !== null &&
-        'success' in result &&
-        (result.success === true || result.success === 'true');
+      let serviceMessage = '';
+      if (typeof result === 'object' && result !== null) {
+        if ('errors' in result && Array.isArray(result.errors)) {
+          serviceMessage = result.errors
+            .map((item) =>
+              typeof item === 'object' &&
+              item !== null &&
+              'message' in item &&
+              typeof item.message === 'string'
+                ? item.message
+                : ''
+            )
+            .filter(Boolean)
+            .join(' ');
+        } else if ('error' in result && typeof result.error === 'string') {
+          serviceMessage = result.error;
+        }
+      }
 
-      if (!response.ok || !serviceAccepted) {
+      if (!response.ok) {
         throw new Error(
           serviceMessage || `Email service rejected the message (HTTP ${response.status}).`
         );
@@ -1110,7 +1114,7 @@ export default function App() {
                         >
                           <i className="bx bx-check-circle" style={{ fontSize: '1.35rem', color: '#10b981' }}></i>
                           <div>
-                            <strong>Message sent!</strong> Thanks for reaching out. If this is the first message, the site owner may need to verify the email with FormSubmit to activate delivery.
+                            <strong>Message sent!</strong> Thanks for reaching out. John Harold will get back to you soon.
                           </div>
                         </motion.div>
                       )}
@@ -1191,7 +1195,7 @@ export default function App() {
                       <i className={`bx ${formSubmitting ? 'bx-loader-alt' : 'bx-send'}`}></i>
                     </motion.button>
                     <p className="contact__form-note">
-                      Messages are delivered to salvanaj75@gmail.com through FormSubmit.
+                      Messages are delivered securely through Formspree to the portfolio owner.
                     </p>
                   </form>
 
