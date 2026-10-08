@@ -249,6 +249,8 @@ export default function App() {
   // Form state
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
 
   // Home profile image is strictly preserved and excluded from about replacements
   const homeBlobImage = `${import.meta.env.BASE_URL}assets/img/perfil.png`;
@@ -282,12 +284,48 @@ export default function App() {
     setIsDarkMode((prev) => !prev);
   };
 
-  // Handle contact submit
-  const handleSubmit = (e: React.FormEvent) => {
+  // Send contact messages through FormSubmit to the portfolio owner's email.
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.name || !formData.email) return;
-    setFormSubmitted(true);
-    setFormData({ name: '', email: '', message: '' });
+    setFormSubmitting(true);
+    setFormError('');
+    setFormSubmitted(false);
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/salvanaj75@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          _subject: 'New portfolio contact message',
+          _template: 'table',
+        }),
+      });
+      const result: unknown = await response.json();
+
+      if (
+        !response.ok ||
+        typeof result !== 'object' ||
+        result === null ||
+        !('success' in result) ||
+        result.success !== 'true'
+      ) {
+        throw new Error('The email service did not accept the message.');
+      }
+
+      setFormSubmitted(true);
+      setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      console.error('Unable to send contact message.', error);
+      setFormError(
+        'Your message could not be sent. Please try again or email salvanaj75@gmail.com directly.'
+      );
+    } finally {
+      setFormSubmitting(false);
+    }
   };
 
   // Smooth appearance transition when clicking any section
@@ -1061,8 +1099,21 @@ export default function App() {
                         >
                           <i className="bx bx-check-circle" style={{ fontSize: '1.35rem', color: '#10b981' }}></i>
                           <div>
-                            <strong>Message Sent!</strong> Thanks for reaching out. John Harold will get back to you soon.
+                            <strong>Message sent!</strong> Thanks for reaching out. If this is the first message, the site owner may need to verify the email with FormSubmit to activate delivery.
                           </div>
+                        </motion.div>
+                      )}
+                      {formError && (
+                        <motion.div
+                          className="contact__error"
+                          role="alert"
+                          initial={{ opacity: 0, y: -12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.25 }}
+                        >
+                          <i className="bx bx-error-circle" aria-hidden="true"></i>
+                          <span>{formError}</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -1120,13 +1171,17 @@ export default function App() {
                     <motion.button
                       type="submit"
                       className="contact__submit-btn"
+                      disabled={formSubmitting}
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <span>Send Message</span>
-                      <i className="bx bx-send"></i>
+                      <span>{formSubmitting ? 'Sending...' : 'Send Message'}</span>
+                      <i className={`bx ${formSubmitting ? 'bx-loader-alt' : 'bx-send'}`}></i>
                     </motion.button>
+                    <p className="contact__form-note">
+                      Messages are delivered to salvanaj75@gmail.com through FormSubmit.
+                    </p>
                   </form>
 
                   {/* Corner ambient glow identical to Home card */}
