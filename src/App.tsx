@@ -300,20 +300,29 @@ export default function App() {
         },
         body: JSON.stringify({
           ...formData,
+          _replyto: formData.email,
           _subject: 'New portfolio contact message',
           _template: 'table',
         }),
       });
-      const result: unknown = await response.json();
+      const result: unknown = await response.json().catch(() => null);
+      const serviceMessage =
+        typeof result === 'object' &&
+        result !== null &&
+        'message' in result &&
+        typeof result.message === 'string'
+          ? result.message
+          : '';
+      const serviceAccepted =
+        typeof result === 'object' &&
+        result !== null &&
+        'success' in result &&
+        (result.success === true || result.success === 'true');
 
-      if (
-        !response.ok ||
-        typeof result !== 'object' ||
-        result === null ||
-        !('success' in result) ||
-        result.success !== 'true'
-      ) {
-        throw new Error('The email service did not accept the message.');
+      if (!response.ok || !serviceAccepted) {
+        throw new Error(
+          serviceMessage || `Email service rejected the message (HTTP ${response.status}).`
+        );
       }
 
       setFormSubmitted(true);
@@ -321,7 +330,9 @@ export default function App() {
     } catch (error) {
       console.error('Unable to send contact message.', error);
       setFormError(
-        'Your message could not be sent. Please try again or email salvanaj75@gmail.com directly.'
+        error instanceof TypeError
+          ? 'Could not connect to the email service. Check your internet connection and try again, or email salvanaj75@gmail.com directly.'
+          : `${error instanceof Error ? error.message : 'The email service could not send your message.'} Please try again or email salvanaj75@gmail.com directly.`
       );
     } finally {
       setFormSubmitting(false);
