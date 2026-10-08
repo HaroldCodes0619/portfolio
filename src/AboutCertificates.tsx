@@ -12,19 +12,19 @@ const CERTIFICATES: Certificate[] = [
   {
     id: 'certificate-1',
     title: 'Certificate of Participation',
-    issuer: 'Torres Capitol College, Inc. — BSIT Department',
+    issuer: 'Certificate of Participation in the BSIT SEMINAR-WORKSHOP held in april 29, 2026 at Torres Capitol College Inc',
     imageUrl: `${import.meta.env.BASE_URL}assets/img/certificate-1.jpg`,
   },
   {
     id: 'certificate-2',
     title: 'Certificate of Participation',
-    issuer: 'DEVCON Bukidnon Chapter',
+    issuer: 'For complying the Final Game Defense conducted at Torres Capitol College Inc College library, 2nd floor',
     imageUrl: `${import.meta.env.BASE_URL}assets/img/certificate-2.jpg`,
   },
   {
     id: 'certificate-3',
     title: 'Certificate of Participation',
-    issuer: 'Philippine Countryville College, Inc.',
+    issuer: 'Recognition of my active participation during the Devcon Bits of light Roadshow.',
     imageUrl: `${import.meta.env.BASE_URL}assets/img/certificate-3.jpg`,
   },
 ];
