@@ -765,7 +765,7 @@ export default function App() {
               </motion.div>
             </div>
 
-            <AboutCertificates onToast={showToast} />
+            <AboutCertificates />
 
             <FooterFrame
               onNavigate={handleNavigate}
