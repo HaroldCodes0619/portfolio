@@ -27,6 +27,12 @@ const CERTIFICATES: Certificate[] = [
     issuer: 'Recognition of my active participation during the Devcon Bits of light Roadshow.',
     imageUrl: `${import.meta.env.BASE_URL}assets/img/certificate-3.jpg`,
   },
+  {
+    id: 'certificate-4',
+    title: 'Certificate of Completion',
+    issuer: 'For completing the Networking Academy through the Cisco Networking Academy program.',
+    imageUrl: `${import.meta.env.BASE_URL}assets/img/certificate-4.jpg`,
+  },
 ];
 
 export const AboutCertificates: React.FC = () => {
