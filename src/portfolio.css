@@ -3675,16 +3675,6 @@ body.dark-theme .about-gallery__card:hover {
   transform: translateY(-2px);
 }
 
-.about-gallery__action-btn--delete {
-  background: rgba(239, 68, 68, 0.9);
-  color: #ffffff;
-  padding: 0.45rem 0.6rem;
-}
-
-.about-gallery__action-btn--delete:hover {
-  background: #dc2626;
-}
-
 /* Card Content */
 .about-gallery__card-content {
   padding: 1.15rem 1.25rem 1rem;
@@ -3733,14 +3723,6 @@ body.dark-theme .about-gallery__card-desc {
 
 body.dark-theme .about-gallery__card-footer {
   border-top-color: rgba(255, 255, 255, 0.06);
-}
-
-.about-gallery__drag-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  color: #94a3b8;
 }
 
 .about-gallery__view-link {

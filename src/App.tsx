@@ -1269,7 +1269,7 @@ export default function App() {
                   <i className="bx bx-x" aria-hidden="true" />
                 </button>
               </div>
-              <AboutPhotoGallery onToast={showToast} />
+              <AboutPhotoGallery />
             </motion.div>
           </motion.div>
         )}

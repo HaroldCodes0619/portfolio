@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export interface GalleryItem {
@@ -15,123 +15,26 @@ const DEFAULT_GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: 'photo-2',
-    title: 'Torres Capitol College (TCC) Lab',
+    title: 'Broadcasting Presentation at DXGT Studio',
     imageUrl: `${import.meta.env.BASE_URL}assets/img/photo-2.jpg`,
   },
   {
     id: 'photo-3',
-    title: 'Tech Hackathon & Sprint',
+    title: 'DXGT Studio Tour Second floor at TCC',
     imageUrl: `${import.meta.env.BASE_URL}assets/img/photo-3.jpg`,
   },
   {
     id: 'photo-4',
-    title: 'Developer Seminars & Events',
+    title: 'DXGT Studio Tour Second floor at TCC',
     imageUrl: `${import.meta.env.BASE_URL}assets/img/photo-4.jpg`,
   },
 ];
 
-interface AboutPhotoGalleryProps {
-  onToast?: (title: string, desc?: string, icon?: string) => void;
-}
-
-export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast }) => {
-  const [items, setItems] = useState<GalleryItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('johndev_photo_gallery');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          // If saved items contained the reverted it-week items, filter them out
-          const cleaned = parsed.filter(
-            (p: any) => p.id !== 'it-week-2025' && p.id !== 'it-week-2026'
-          );
-          if (cleaned.length > 0) {
-            return cleaned;
-          }
-        } catch (_) {}
-      }
-    }
-    return DEFAULT_GALLERY_ITEMS;
-  });
-
+export const AboutPhotoGallery: React.FC = () => {
   const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
-  const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const saveItems = (updated: GalleryItem[]) => {
-    setItems(updated);
-    try {
-      localStorage.setItem('johndev_photo_gallery', JSON.stringify(updated));
-    } catch (_) {}
-  };
-
-  // Trigger file replacement for an existing item
-  const handleTriggerReplace = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveUploadId(id);
-    fileInputRef.current?.click();
-  };
-
-  // Handle file selected from disk
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && activeUploadId) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const base64 = ev.target?.result as string;
-        if (base64) {
-          const updated = items.map((item) =>
-            item.id === activeUploadId ? { ...item, imageUrl: base64 } : item
-          );
-          saveItems(updated);
-          onToast?.('Photo Updated!', 'Image updated successfully.', 'bx-check');
-          if (previewItem && previewItem.id === activeUploadId) {
-            setPreviewItem({ ...previewItem, imageUrl: base64 });
-          }
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    setActiveUploadId(null);
-  };
-
-  // Drag & drop replacement directly onto a card
-  const handleDropOnCard = (id: string, e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const base64 = ev.target?.result as string;
-        if (base64) {
-          const updated = items.map((item) =>
-            item.id === id ? { ...item, imageUrl: base64 } : item
-          );
-          saveItems(updated);
-          onToast?.('Photo Updated!', 'Image replaced successfully.', 'bx-check');
-          if (previewItem && previewItem.id === id) {
-            setPreviewItem({ ...previewItem, imageUrl: base64 });
-          }
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   return (
     <div className="about-gallery">
-      {/* Hidden file input for card replacement */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
-
       {/* Clean Gallery Header */}
       <div className="about-gallery__header about-gallery__header--plain">
         <div className="about-gallery__headings">
@@ -148,7 +51,7 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
       {/* Plain Gallery Grid */}
       <div className="about-gallery__container about-gallery__container--grid">
         <AnimatePresence mode="popLayout">
-          {items.map((item, idx) => (
+          {DEFAULT_GALLERY_ITEMS.map((item, idx) => (
             <motion.div
               key={item.id}
               layout
@@ -156,8 +59,6 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
               className="about-gallery__card"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => handleDropOnCard(item.id, e)}
               onClick={() => setPreviewItem(item)}
               role="button"
               tabIndex={0}
@@ -176,20 +77,7 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
 
                 {/* Subtle Hover Action Overlay */}
                 <div className="about-gallery__card-overlay">
-                  <div
-                    className="about-gallery__card-actions"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      className="about-gallery__action-btn"
-                      onClick={(e) => handleTriggerReplace(item.id, e)}
-                      title="Replace this photo"
-                      aria-label="Replace photo"
-                    >
-                      <i className="bx bx-camera"></i>
-                      <span>Replace</span>
-                    </button>
+                  <div className="about-gallery__card-actions">
                     <button
                       type="button"
                       className="about-gallery__action-btn"
@@ -207,9 +95,6 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
               <div className="about-gallery__card-content">
                 <h4 className="about-gallery__card-title">{item.title}</h4>
                 <div className="about-gallery__card-footer">
-                  <span className="about-gallery__drag-hint">
-                    <i className="bx bx-upload"></i> Drag & drop to replace
-                  </span>
                   <span className="about-gallery__view-link">
                     View <i className="bx bx-right-arrow-alt"></i>
                   </span>
@@ -220,9 +105,7 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
         </AnimatePresence>
       </div>
 
-      {/* ======================================================================
-          PREVIEW MODAL (Viewing & Replacing individual card)
-         ====================================================================== */}
+      {/* Photo preview */}
       <AnimatePresence>
         {previewItem && (
           <div className="about-gallery-modal-root" role="dialog" aria-modal="true">
@@ -266,15 +149,6 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
               {/* Action Bar */}
               <div className="about-gallery-viewer-footer">
                 <div className="about-gallery-viewer-actions">
-                  <button
-                    type="button"
-                    className="about-gallery-viewer-btn"
-                    onClick={(e) => handleTriggerReplace(previewItem.id, e)}
-                  >
-                    <i className="bx bx-camera"></i>
-                    <span>Replace Photo</span>
-                  </button>
-
                   <a
                     href={previewItem.imageUrl}
                     download={`gallery-${previewItem.id}.jpg`}
