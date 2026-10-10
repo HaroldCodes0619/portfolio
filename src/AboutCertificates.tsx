@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
 interface Certificate {
   id: string;
@@ -37,6 +37,16 @@ const CERTIFICATES: Certificate[] = [
 
 export const AboutCertificates: React.FC = () => {
   const [previewCertificate, setPreviewCertificate] = useState<Certificate | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState(1);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const activeCertificate = CERTIFICATES[activeIndex];
+
+  const showCertificate = (index: number, direction: number) => {
+    setSlideDirection(direction);
+    setActiveIndex((index + CERTIFICATES.length) % CERTIFICATES.length);
+  };
 
   useEffect(() => {
     if (!previewCertificate) return;
@@ -48,6 +58,17 @@ export const AboutCertificates: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [previewCertificate]);
+
+  useEffect(() => {
+    if (prefersReducedMotion || isCarouselPaused || previewCertificate) return;
+
+    const timer = window.setInterval(() => {
+      setSlideDirection(1);
+      setActiveIndex((index) => (index + 1) % CERTIFICATES.length);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [isCarouselPaused, prefersReducedMotion, previewCertificate]);
 
   return (
     <section className="about-certificates bd-grid" aria-labelledby="certificates-title">
@@ -62,41 +83,89 @@ export const AboutCertificates: React.FC = () => {
         </p>
       </div>
 
-      <div className="about-certificates__grid">
-        {CERTIFICATES.map((certificate, index) => (
-          <motion.article
-            key={certificate.id}
-            className="about-certificate-card"
-            variants={{
-              hidden: { opacity: 0, y: 16 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            <button
-              className="about-certificate-card__preview"
-              type="button"
-              onClick={() => setPreviewCertificate(certificate)}
-              aria-label={`View ${certificate.title} from ${certificate.issuer}`}
+      <div
+        className="about-certificates__carousel"
+        role="region"
+        aria-label="Certificates"
+        aria-roledescription="carousel"
+        onMouseEnter={() => setIsCarouselPaused(true)}
+        onMouseLeave={() => setIsCarouselPaused(false)}
+        onFocusCapture={() => setIsCarouselPaused(true)}
+        onBlurCapture={(event) => {
+          if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
+            setIsCarouselPaused(false);
+          }
+        }}
+      >
+        <div className="about-certificates__viewport">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.article
+              key={activeCertificate.id}
+              className="about-certificate-card"
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${activeIndex + 1} of ${CERTIFICATES.length}`}
+              initial={{ opacity: 0, x: slideDirection * 36 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: slideDirection * -36 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.35, ease: 'easeOut' }}
             >
-              <span className="about-certificate-card__image">
-                <img src={certificate.imageUrl} alt="" />
-                <span className="about-certificate-card__number">0{index + 1}</span>
-                <span className="about-certificate-card__view-hint">
-                  <i className="bx bx-expand-alt" aria-hidden="true" />
-                  View certificate
+              <button
+                className="about-certificate-card__preview"
+                type="button"
+                onClick={() => setPreviewCertificate(activeCertificate)}
+                aria-label={`View ${activeCertificate.title} from ${activeCertificate.issuer}`}
+              >
+                <span className="about-certificate-card__image">
+                  <img src={activeCertificate.imageUrl} alt="" />
+                  <span className="about-certificate-card__number">
+                    {String(activeIndex + 1).padStart(2, '0')}
+                  </span>
+                  <span className="about-certificate-card__view-hint">
+                    <i className="bx bx-expand-alt" aria-hidden="true" />
+                    View certificate
+                  </span>
                 </span>
-              </span>
-            </button>
+              </button>
 
-            <div className="about-certificate-card__details">
-              <h4 className="about-certificate-card__title">{certificate.title}</h4>
-              <p className="about-certificate-card__issuer">{certificate.issuer}</p>
-            </div>
-          </motion.article>
-        ))}
+              <div className="about-certificate-card__details">
+                <h4 className="about-certificate-card__title">{activeCertificate.title}</h4>
+                <p className="about-certificate-card__issuer">{activeCertificate.issuer}</p>
+              </div>
+            </motion.article>
+          </AnimatePresence>
+        </div>
+
+        <div className="about-certificates__controls" aria-label="Certificate carousel controls">
+          <button
+            className="about-certificates__arrow"
+            type="button"
+            onClick={() => showCertificate(activeIndex - 1, -1)}
+            aria-label="Previous certificate"
+          >
+            <i className="bx bx-chevron-left" aria-hidden="true" />
+          </button>
+          <div className="about-certificates__pagination" role="group" aria-label="Choose a certificate">
+            {CERTIFICATES.map((certificate, index) => (
+              <button
+                key={certificate.id}
+                className={`about-certificates__dot${index === activeIndex ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => showCertificate(index, index >= activeIndex ? 1 : -1)}
+                aria-label={`Show certificate ${index + 1}`}
+                aria-current={index === activeIndex ? 'true' : undefined}
+              />
+            ))}
+          </div>
+          <button
+            className="about-certificates__arrow"
+            type="button"
+            onClick={() => showCertificate(activeIndex + 1, 1)}
+            aria-label="Next certificate"
+          >
+            <i className="bx bx-chevron-right" aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
