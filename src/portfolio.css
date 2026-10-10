@@ -698,7 +698,15 @@ body.dark-theme .tech-glance__glow {
 .about-certificates__title {
   color: var(--second-color);
   font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
   margin-bottom: 0.4rem;
+}
+.about-certificates__intro {
+  max-width: 760px;
+  margin: 0 auto;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.7;
 }
 .about-certificates__grid {
   display: grid;
@@ -816,6 +824,9 @@ body.dark-theme .tech-glance__glow {
 }
 body.dark-theme .about-certificates__title {
   color: #fff;
+}
+body.dark-theme .about-certificates__intro {
+  color: #94a3b8;
 }
 body.dark-theme .about-certificate-card__issuer {
   color: #94a3b8;

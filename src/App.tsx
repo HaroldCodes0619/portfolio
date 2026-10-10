@@ -1255,10 +1255,6 @@ export default function App() {
               transition={{ duration: 0.2 }}
             >
               <div className="about-gallery-popover__toolbar">
-                <span className="about-gallery-popover__label">
-                  <i className="bx bx-images" aria-hidden="true" />
-                  Photo Gallery
-                </span>
                 <button
                   type="button"
                   className="about-gallery-popover__close"

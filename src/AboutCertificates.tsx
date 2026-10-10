@@ -54,6 +54,12 @@ export const AboutCertificates: React.FC = () => {
       <div className="about-certificates__heading">
         <span className="about-certificates__eyebrow">Achievements</span>
         <h3 className="about-certificates__title" id="certificates-title">Certificates</h3>
+        <p className="about-certificates__intro">
+          These certificates represent my academic journey and technical growth in Information
+          Technology. They serve as formal documentation of the specialized IT skills I have
+          acquired through coursework, as well as my active engagement, teamwork, and leadership
+          in various school programs and events
+        </p>
       </div>
 
       <div className="about-certificates__grid">

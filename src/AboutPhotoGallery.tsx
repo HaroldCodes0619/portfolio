@@ -38,9 +38,6 @@ export const AboutPhotoGallery: React.FC = () => {
       {/* Clean Gallery Header */}
       <div className="about-gallery__header about-gallery__header--plain">
         <div className="about-gallery__headings">
-          <span className="about-gallery__badge">
-            <i className="bx bx-camera"></i> GALLERY
-          </span>
           <h3 className="about-gallery__title">Moments & Highlights</h3>
           <p className="about-gallery__subtitle">
             A visual snapshot of my developer workspace, campus activities, and tech experiences.
