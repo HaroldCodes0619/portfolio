@@ -7,6 +7,7 @@ import { WaveBackgroundCanvas } from './WaveBackgroundCanvas';
 import { Toast, ToastMessage } from './Toast';
 import { ShareModal } from './ShareModal';
 import { AboutCertificates } from './AboutCertificates';
+import { AboutPhotoGallery } from './AboutPhotoGallery';
 
 const MySQLIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -176,6 +177,7 @@ export default function App() {
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [aboutGalleryOpen, setAboutGalleryOpen] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
   const showToast = (title: string, description?: string, icon?: string) => {
@@ -185,6 +187,17 @@ export default function App() {
       setToast((cur) => (cur?.id === id ? null : cur));
     }, 2800);
   };
+
+  useEffect(() => {
+    if (!aboutGalleryOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setAboutGalleryOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [aboutGalleryOpen]);
 
   const handleCopyEmail = async () => {
     try {
@@ -347,11 +360,13 @@ export default function App() {
   const navigateToSection = (e: React.MouseEvent, id: SectionName) => {
     e.preventDefault();
     setMenuOpen(false);
+    setAboutGalleryOpen(false);
     setActiveSection(id);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleNavigate = (id: SectionName) => {
+    setAboutGalleryOpen(false);
     setActiveSection(id);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
@@ -1215,6 +1230,66 @@ export default function App() {
         )}
       </AnimatePresence>
     </main>
+
+      <AnimatePresence>
+        {activeSection === 'about' && aboutGalleryOpen && (
+          <motion.div
+            className="about-gallery-popover"
+            role="presentation"
+            onClick={() => setAboutGalleryOpen(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              id="about-gallery"
+              className="about-gallery-popover__card"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Photo gallery"
+              onClick={(event) => event.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="about-gallery-popover__toolbar">
+                <span className="about-gallery-popover__label">
+                  <i className="bx bx-images" aria-hidden="true" />
+                  Photo Gallery
+                </span>
+                <button
+                  type="button"
+                  className="about-gallery-popover__close"
+                  onClick={() => setAboutGalleryOpen(false)}
+                  aria-label="Close photo gallery"
+                  autoFocus
+                >
+                  <i className="bx bx-x" aria-hidden="true" />
+                </button>
+              </div>
+              <AboutPhotoGallery onToast={showToast} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {activeSection === 'about' && (
+        <motion.button
+          type="button"
+          className="about-gallery-toggle"
+          onClick={() => setAboutGalleryOpen((open) => !open)}
+          aria-expanded={aboutGalleryOpen}
+          aria-controls="about-gallery"
+          whileHover={{ y: -3, scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.2 }}
+        >
+          <i className={`bx ${aboutGalleryOpen ? 'bx-x' : 'bx-images'}`} aria-hidden="true" />
+          <span>{aboutGalleryOpen ? 'Close Gallery' : 'Photo Gallery'}</span>
+        </motion.button>
+      )}
 
       {/*===== PRIVACY POLICY MODAL =====*/}
       <PrivacyPolicyModal

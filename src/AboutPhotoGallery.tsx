@@ -5,33 +5,28 @@ export interface GalleryItem {
   id: string;
   title: string;
   imageUrl: string;
-  description?: string;
 }
 
 const DEFAULT_GALLERY_ITEMS: GalleryItem[] = [
   {
     id: 'photo-1',
-    title: 'Development Workstation',
-    imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1000&q=80',
-    description: 'My workstation setup optimized for responsive web development, testing, and continuous learning.',
+    title: 'Bits of Light Roadshow',
+    imageUrl: `${import.meta.env.BASE_URL}assets/img/photo-1.jpg`,
   },
   {
     id: 'photo-2',
     title: 'Torres Capitol College (TCC) Lab',
-    imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80',
-    description: 'Collaborative coding sessions, hands-on software labs, and lectures at TCC campus.',
+    imageUrl: `${import.meta.env.BASE_URL}assets/img/photo-2.jpg`,
   },
   {
     id: 'photo-3',
     title: 'Tech Hackathon & Sprint',
-    imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1000&q=80',
-    description: 'Intensive team sprints building practical software solutions within tight deadlines.',
+    imageUrl: `${import.meta.env.BASE_URL}assets/img/photo-3.jpg`,
   },
   {
     id: 'photo-4',
     title: 'Developer Seminars & Events',
-    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
-    description: 'Participating in IT seminars, modern web conferences, and peer tech presentations.',
+    imageUrl: `${import.meta.env.BASE_URL}assets/img/photo-4.jpg`,
   },
 ];
 
@@ -211,9 +206,6 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
               {/* Card Meta Content */}
               <div className="about-gallery__card-content">
                 <h4 className="about-gallery__card-title">{item.title}</h4>
-                {item.description && (
-                  <p className="about-gallery__card-desc">{item.description}</p>
-                )}
                 <div className="about-gallery__card-footer">
                   <span className="about-gallery__drag-hint">
                     <i className="bx bx-upload"></i> Drag & drop to replace
@@ -271,12 +263,8 @@ export const AboutPhotoGallery: React.FC<AboutPhotoGalleryProps> = ({ onToast })
                 />
               </div>
 
-              {/* Description & Action Bar */}
+              {/* Action Bar */}
               <div className="about-gallery-viewer-footer">
-                <p className="about-gallery-viewer-desc">
-                  {previewItem.description || 'Captured moment in John Harold’s tech journey.'}
-                </p>
-
                 <div className="about-gallery-viewer-actions">
                   <button
                     type="button"
