@@ -565,6 +565,29 @@ export default function App() {
               animate="animate"
               exit="exit"
             >
+          </motion.section>
+        )}
+
+        {/*===== ABOUT PANEL =====*/}
+        {activeSection === 'about' && (
+          <motion.section
+            key="about"
+            className="about section section-panel"
+            id="about"
+            variants={sectionPanelVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <motion.h2
+              className="section-title"
+              initial="hidden"
+              animate={activeSection === 'about' ? 'visible' : 'hidden'}
+              variants={sectionTitleVariants}
+            >
+              About
+            </motion.h2>
+
             <div className="home__grid bd-grid">
               <motion.div
                 className="home__data"
@@ -739,35 +762,6 @@ export default function App() {
                 </div>
               </motion.div>
             </div>
-            <FooterFrame
-              onNavigate={handleNavigate}
-              onOpenPrivacy={() => setPrivacyModalOpen(true)}
-              onOpenTerms={() => setTermsModalOpen(true)}
-              onOpenShare={() => setShareModalOpen(true)}
-              onToast={showToast}
-            />
-          </motion.section>
-        )}
-
-        {/*===== ABOUT PANEL =====*/}
-        {activeSection === 'about' && (
-          <motion.section
-            key="about"
-            className="about section section-panel"
-            id="about"
-            variants={sectionPanelVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-          >
-            <motion.h2
-              className="section-title"
-              initial="hidden"
-              animate={activeSection === 'about' ? 'visible' : 'hidden'}
-              variants={sectionTitleVariants}
-            >
-              About
-            </motion.h2>
 
             <div className="about__container bd-grid">
               <motion.div
