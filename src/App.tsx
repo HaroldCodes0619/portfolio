@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { FooterFrame } from './FooterFrame';
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 import { TermsOfServiceModal } from './TermsOfServiceModal';
@@ -92,6 +92,19 @@ const GLANCE_SKILLS: TechItem[] = [
   { name: 'UI / UX', icon: 'bx bxs-paint' },
 ];
 
+const HOME_ICON_SCATTER = [
+  { x: -10, y: 9 },
+  { x: 7, y: -7 },
+  { x: -8, y: 10 },
+  { x: 10, y: -9 },
+  { x: -5, y: 6 },
+  { x: 8, y: -8 },
+  { x: -10, y: 9 },
+  { x: 6, y: -10 },
+  { x: -7, y: 7 },
+  { x: 9, y: -6 },
+] as const;
+
 const ROLES = [
   'Frontend Developer',
   'HTML / CSS / JavaScript',
@@ -171,9 +184,117 @@ const sectionPanelVariants = {
   },
 };
 
+const attachSectionBounce = (panel: HTMLElement) => {
+  const maxBounce = 52;
+  let bounceOffset = 0;
+  let touchY: number | null = null;
+  let releaseTimer: number | undefined;
+
+  const releaseBounce = () => {
+    if (bounceOffset === 0) return;
+
+    bounceOffset = 0;
+    panel.style.setProperty('--edge-bounce-y', '0px');
+    panel.dataset.edgeBounce = 'settling';
+    window.clearTimeout(releaseTimer);
+    releaseTimer = window.setTimeout(() => {
+      delete panel.dataset.edgeBounce;
+      panel.style.removeProperty('--edge-bounce-y');
+    }, 520);
+  };
+
+  const applyBounce = (distance: number) => {
+    window.clearTimeout(releaseTimer);
+    bounceOffset = Math.max(-maxBounce, Math.min(maxBounce, bounceOffset + distance * 0.32));
+    panel.style.setProperty('--edge-bounce-y', `${bounceOffset}px`);
+    panel.dataset.edgeBounce = 'pulling';
+  };
+
+  const getBoundaryDirection = (target: EventTarget | null, delta: number) => {
+    if (target instanceof Element && target.closest(
+      '.about-gallery-popover, .about-gallery-modal-root, .certificate-viewer, .privacy-modal, .terms-modal'
+    )) {
+      return 0;
+    }
+
+    const panelMaxScroll = panel.scrollHeight - panel.clientHeight;
+    if (panelMaxScroll > 1) {
+      if (delta < 0 && panel.scrollTop <= 1) return 1;
+      if (delta > 0 && panel.scrollTop >= panelMaxScroll - 1) return -1;
+      return 0;
+    }
+
+    const scrollRoot = document.scrollingElement;
+    if (!scrollRoot) return 0;
+
+    const maxScroll = scrollRoot.scrollHeight - window.innerHeight;
+    if (maxScroll <= 1) return 0;
+    if (delta < 0 && window.scrollY <= 1) return 1;
+    if (delta > 0 && window.scrollY >= maxScroll - 1) return -1;
+    return 0;
+  };
+
+  const handleWheel = (event: WheelEvent) => {
+    const direction = getBoundaryDirection(event.target, event.deltaY);
+    if (direction === 0) {
+      releaseBounce();
+      return;
+    }
+
+    event.preventDefault();
+    applyBounce(direction * Math.min(Math.abs(event.deltaY), 48));
+    window.clearTimeout(releaseTimer);
+    releaseTimer = window.setTimeout(releaseBounce, 120);
+  };
+
+  const handleTouchStart = (event: TouchEvent) => {
+    touchY = event.touches[0]?.clientY ?? null;
+  };
+
+  const handleTouchMove = (event: TouchEvent) => {
+    const nextTouchY = event.touches[0]?.clientY;
+    if (touchY === null || nextTouchY === undefined) return;
+
+    const delta = nextTouchY - touchY;
+    touchY = nextTouchY;
+    const direction = getBoundaryDirection(event.target, -delta);
+    if (direction === 0) {
+      releaseBounce();
+      return;
+    }
+
+    event.preventDefault();
+    applyBounce(direction * Math.min(Math.abs(delta), 48));
+  };
+
+  const handleTouchEnd = () => {
+    touchY = null;
+    releaseBounce();
+  };
+
+  window.addEventListener('wheel', handleWheel, { passive: false });
+  window.addEventListener('touchstart', handleTouchStart, { passive: true });
+  window.addEventListener('touchmove', handleTouchMove, { passive: false });
+  window.addEventListener('touchend', handleTouchEnd);
+  window.addEventListener('touchcancel', handleTouchEnd);
+
+  return () => {
+    window.clearTimeout(releaseTimer);
+    window.removeEventListener('wheel', handleWheel);
+    window.removeEventListener('touchstart', handleTouchStart);
+    window.removeEventListener('touchmove', handleTouchMove);
+    window.removeEventListener('touchend', handleTouchEnd);
+    window.removeEventListener('touchcancel', handleTouchEnd);
+    panel.style.removeProperty('--edge-bounce-y');
+    delete panel.dataset.edgeBounce;
+  };
+};
+
 export default function App() {
+  const prefersReducedMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionName>('home');
+  const [homeScrollTop, setHomeScrollTop] = useState(0);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -361,12 +482,14 @@ export default function App() {
     e.preventDefault();
     setMenuOpen(false);
     setAboutGalleryOpen(false);
+    if (id === 'home') setHomeScrollTop(0);
     setActiveSection(id);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleNavigate = (id: SectionName) => {
     setAboutGalleryOpen(false);
+    if (id === 'home') setHomeScrollTop(0);
     setActiveSection(id);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
@@ -374,6 +497,34 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeSection]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const main = document.querySelector('.section-main-container');
+    if (!main) return;
+
+    let currentPanel: HTMLElement | null = null;
+    let detachPanelListeners: (() => void) | undefined;
+
+    const attachCurrentPanel = () => {
+      const nextPanel = document.getElementById(activeSection);
+      if (!nextPanel || nextPanel === currentPanel) return;
+
+      detachPanelListeners?.();
+      currentPanel = nextPanel;
+      detachPanelListeners = attachSectionBounce(nextPanel);
+    };
+
+    const observer = new MutationObserver(attachCurrentPanel);
+    observer.observe(main, { childList: true });
+    attachCurrentPanel();
+
+    return () => {
+      observer.disconnect();
+      detachPanelListeners?.();
+    };
+  }, [activeSection, prefersReducedMotion]);
 
   return (
     <div className="portfolio-app-root">
@@ -564,7 +715,94 @@ export default function App() {
               initial="initial"
               animate="animate"
               exit="exit"
+              onScroll={(event) => setHomeScrollTop(event.currentTarget.scrollTop)}
             >
+              <div className="home__landing">
+                <motion.div
+                  className="home__landing-content"
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
+                  animate={{
+                    opacity: 1,
+                    y: prefersReducedMotion ? 0 : -homeScrollTop * 0.22,
+                  }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0 : 0.55,
+                    delay: prefersReducedMotion ? 0 : 0.08,
+                    ease: smoothEase,
+                  }}
+                >
+                  <span className="home__eyebrow">
+                    IT Student <span aria-hidden="true">/</span> Web &amp; Mobile Developer
+                  </span>
+                  <motion.div
+                    className={`home__tech-constellation${homeScrollTop >= 96 || prefersReducedMotion ? ' is-settled' : ''}`}
+                    aria-label="Technologies: Python, JavaScript, Java, HTML5, CSS3, Firebase, MySQL, Android, Git, and UI/UX"
+                    role="img"
+                    style={{
+                      y: prefersReducedMotion ? 0 : -homeScrollTop * 0.12,
+                    }}
+                  >
+                    {GLANCE_SKILLS.map((skill, index) => {
+                      const scatter = HOME_ICON_SCATTER[index];
+                      const scatterProgress = prefersReducedMotion
+                        ? 0
+                        : Math.max(0, 1 - homeScrollTop / 96);
+
+                      return (
+                        <motion.span
+                          key={skill.name}
+                          className="home__tech-badge"
+                          title={skill.name}
+                          animate={{
+                            x: scatter.x * scatterProgress,
+                            y: scatter.y * scatterProgress,
+                          }}
+                          transition={{
+                            duration: prefersReducedMotion ? 0 : 0.45,
+                            ease: smoothEase,
+                          }}
+                        >
+                          <span className="home__tech-symbol" aria-hidden="true">
+                            {skill.renderIcon ? (
+                              skill.renderIcon('home__tech-svg')
+                            ) : (
+                              <i className={`${skill.icon} home__tech-icon`} />
+                            )}
+                          </span>
+                        </motion.span>
+                      );
+                    })}
+                  </motion.div>
+                  <h1 className="home__landing-title">
+                    JOHNDEV<span>.</span>
+                  </h1>
+                  <p className="home__landing-description">
+                    Building practical digital experiences through web, mobile, and continuous learning.
+                  </p>
+                  <div className="home__landing-actions">
+                    <motion.a
+                      href="#project"
+                      onClick={(e) => navigateToSection(e, 'project')}
+                      className="home__cta home__cta--primary"
+                      whileHover={prefersReducedMotion ? undefined : { y: -3 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                    >
+                      Explore My Projects
+                      <i className="bx bx-right-arrow-alt" aria-hidden="true" />
+                    </motion.a>
+                    <motion.a
+                      href="#about"
+                      onClick={(e) => navigateToSection(e, 'about')}
+                      className="home__cta home__cta--secondary"
+                      whileHover={prefersReducedMotion ? undefined : { y: -3 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                    >
+                      About Me
+                      <i className="bx bx-user" aria-hidden="true" />
+                    </motion.a>
+                  </div>
+                </motion.div>
+              </div>
           </motion.section>
         )}
 
